@@ -27,6 +27,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product createProduct(Product product) {
+        // Business logic: Check for duplicate SKU before saving
         if (productRepository.existsBySku(product.getSku())) {
             throw new IllegalArgumentException("Product with SKU " + product.getSku() + " already exists.");
         }
@@ -47,8 +48,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public Product updateProduct(Long id, Product productDetails) {
-        Product product = getProductById(id);
+        Product product = getProductById(id); // Ensures product exists
 
+        // Update fields
         product.setName(productDetails.getName());
         product.setCategory(productDetails.getCategory());
         product.setPrice(productDetails.getPrice());
@@ -64,6 +66,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = getProductById(id);
         int newQuantity = product.getQuantity() + amount;
 
+        // Validation to prevent negative stock
         if (newQuantity < 0) {
             throw new IllegalArgumentException("Insufficient stock. Cannot reduce quantity below 0.");
         }
@@ -83,6 +86,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<Product> searchProducts(String name, String category, Pageable pageable) {
+        // Dynamic search based on available parameters
         if (name != null && category != null) {
             return productRepository.findByNameContainingIgnoreCaseAndCategoryContainingIgnoreCase(name, category,
                     pageable);
@@ -102,6 +106,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Map<String, Object> getProductStats() {
+        // Aggregate statistics
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalItems", productRepository.countTotalItems());
         stats.put("totalInventoryValue", productRepository.calculateTotalInventoryValue());
